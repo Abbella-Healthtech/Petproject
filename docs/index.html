@@ -1,47 +1,112 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8" />
   <title>Pet Tracker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <header>
-    <h2>Welcome to Pet Tracker</h2>
-    <input type="email" id="loginEmail" placeholder="Enter your email" />
-    <button onclick="login()">Send Login Link</button>
-  </header>
+  <h2>Pet Tracker with Supabase</h2>
 
-  <h1>My Pets</h1>
-  <form id="petForm">
-    <input type="text" id="petName" placeholder="Pet Name" required />
-    <input type="text" id="petType" placeholder="Pet Type" required />
-    <button type="submit">Add Pet</button>
-  </form>
-  <ul id="petList"></ul>
+  <!-- Login -->
+  <input type="email" id="email" placeholder="Enter your email" />
+  <button id="loginBtn">Send Login Link</button>
 
-  <footer>
-    <p>© 2025 Pet Tracker. All rights reserved.</p>
-  </footer>
+  <!-- Pet Form -->
+  <div id="petSection" style="display:none;">
+    <h3>My Pets</h3>
+    <form id="petForm">
+      <input type="text" id="petName" placeholder="Pet Name" required />
+      <input type="text" id="petType" placeholder="Pet Type" required />
+      <button type="submit">Add Pet</button>
+    </form>
+    <ul id="petList"></ul>
+    <button onclick="logout()">Logout</button>
+  </div>
 
-  <!-- ✅ Supabase Client -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"></script>
-  <script>
-    const supabaseUrl = 'https://pvbzfaowtfmlaafhfmol.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2YnpmYW93dGZtbGFhZmhmbW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1MjMzNDcsImV4cCI6MjA2NjA5OTM0N30.zROZYB7D4wONINoGwEUG8Hww3RZaVypAThWBqplGT1I';
-    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  <footer><p>© 2025 Pet Tracker</p></footer>
 
-    async function login() {
-      const email = document.getElementById("loginEmail").value;
+  <!-- Supabase Script -->
+  <script type="module">
+    import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+    const supabase = createClient(
+      'https://pvbzfaowtfmlaafhfmol.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2YnpmYW93dGZtbGFhZmhmbW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1MjMzNDcsImV4cCI6MjA2NjA5OTM0N30.zROZYB7D4wONINoGwEUG8Hww3RZaVypAThWBqplGT1I'
+    );
+
+    let currentUser = null;
+    const emailInput = document.getElementById('email');
+    const loginBtn = document.getElementById('loginBtn');
+    const petForm = document.getElementById('petForm');
+    const petList = document.getElementById('petList');
+    const petSection = document.getElementById('petSection');
+
+    loginBtn.onclick = async () => {
+      const email = emailInput.value;
       const { error } = await supabase.auth.signInWithOtp({ email });
+      alert(error ? `Login failed: ${error.message}` : "Check your email for the login link.");
+    };
+
+    async function logout() {
+      await supabase.auth.signOut();
+      location.reload();
+    }
+
+    async function renderPets() {
+      const { data, error } = await supabase
+        .from("pets")
+        .select("*")
+        .eq("user_id", currentUser.id)
+        .order("created_at", { ascending: false });
+
+      petList.innerHTML = "";
+
       if (error) {
-        alert("Login failed: " + error.message);
-      } else {
-        alert("Check your email for the login link.");
+        alert("Error loading pets: " + error.message);
+        return;
       }
+
+      data.forEach((pet) => {
+        const li = document.createElement("li");
+        li.textContent = `${pet.name} (${pet.type})`;
+
+        const del = document.createElement("button");
+        del.textContent = "🗑️";
+        del.onclick = async () => {
+          await supabase.from("pets").delete().eq("id", pet.id);
+          renderPets();
+        };
+
+        li.appendChild(del);
+        petList.appendChild(li);
+      });
+    }
+
+    petForm.onsubmit = async (e) => {
+      e.preventDefault();
+      const name = document.getElementById('petName').value;
+      const type = document.getElementById('petType').value;
+
+      const { error } = await supabase.from("pets").insert([
+        { name, type, user_id: currentUser.id }
+      ]);
+
+      if (error) {
+        alert("Error adding pet: " + error.message);
+      } else {
+        petForm.reset();
+        renderPets();
+      }
+    };
+
+    // Auto login check
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      currentUser = user;
+      petSection.style.display = "block";
+      renderPets();
     }
   </script>
-
-  <!-- ✅ Main App Logic -->
-  <script src="script.js"></script>
 </body>
 </html>
