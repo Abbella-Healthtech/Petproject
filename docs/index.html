@@ -5,6 +5,12 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <header>
+    <h2>Welcome to Pet Tracker</h2>
+    <input type="email" id="loginEmail" placeholder="Enter your email" />
+    <button onclick="login()">Send Login Link</button>
+  </header>
+
   <h1>My Pets</h1>
   <form id="petForm">
     <input type="text" id="petName" placeholder="Pet Name" required />
@@ -12,10 +18,30 @@
     <button type="submit">Add Pet</button>
   </form>
   <ul id="petList"></ul>
-  <script src="script.js"></script>
-<footer>
-  <p>© 2025 Pet Tracker. All rights reserved.</p>
-</footer>
 
+  <footer>
+    <p>© 2025 Pet Tracker. All rights reserved.</p>
+  </footer>
+
+  <!-- ✅ Supabase Client -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"></script>
+  <script>
+    const supabaseUrl = 'https://pvbzfaowtfmlaafhfmol.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2YnpmYW93dGZtbGFhZmhmbW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1MjMzNDcsImV4cCI6MjA2NjA5OTM0N30.zROZYB7D4wONINoGwEUG8Hww3RZaVypAThWBqplGT1I';
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function login() {
+      const email = document.getElementById("loginEmail").value;
+      const { error } = await supabase.auth.signInWithOtp({ email });
+      if (error) {
+        alert("Login failed: " + error.message);
+      } else {
+        alert("Check your email for the login link.");
+      }
+    }
+  </script>
+
+  <!-- ✅ Main App Logic -->
+  <script src="script.js"></script>
 </body>
 </html>
