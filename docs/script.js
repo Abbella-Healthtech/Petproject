@@ -13,9 +13,21 @@ function savePets(pets) {
 function renderPets() {
   const pets = getSavedPets();
   petList.innerHTML = "";
-  pets.forEach((pet) => {
+
+  pets.forEach((pet, index) => {
     const li = document.createElement("li");
-    li.textContent = `${pet.name} (${pet.type})`;
+    li.textContent = `${pet.name} (${pet.type}) `;
+
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.style.marginLeft = "10px";
+    deleteBtn.onclick = () => {
+      pets.splice(index, 1);
+      savePets(pets);
+      renderPets();
+    };
+
+    li.appendChild(deleteBtn);
     petList.appendChild(li);
   });
 }
