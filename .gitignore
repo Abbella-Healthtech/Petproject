@@ -1,0 +1,12 @@
+# OS-specific
+.DS_Store
+
+# Editor folders
+.vscode/
+
+# Logs
+*.log
+
+# Node or Python stuff (future-proofing)
+node_modules/
+__pycache__/
