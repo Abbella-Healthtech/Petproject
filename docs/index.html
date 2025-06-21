@@ -4,26 +4,22 @@
   <title>Pet Tracker</title>
   <link rel="stylesheet" href="style.css" />
 </head>
-
 <body>
   <header>
     <h2>Welcome to Pet Tracker</h2>
   </header>
 
-  <!-- 🔐 Login -->
+  <!-- 🔐 Email login -->
   <input type="email" id="email" placeholder="Enter your email" />
-  <button onclick="login()">Send Login Link</button>
+  <button id="loginBtn">Send Login Link</button>
 
-  <!-- 🐾 Pet Tracker UI (hidden by default) -->
-  <div id="mainUI" style="display: none;">
-    <h1>My Pets</h1>
-    <form id="petForm">
-      <input type="text" id="petName" placeholder="Pet Name" required />
-      <input type="text" id="petType" placeholder="Pet Type" required />
-      <button type="submit">Add Pet</button>
-    </form>
-    <ul id="petList"></ul>
-  </div>
+  <h1>My Pets</h1>
+  <form id="petForm">
+    <input type="text" id="petName" placeholder="Pet Name" required />
+    <input type="text" id="petType" placeholder="Pet Type" required />
+    <button type="submit">Add Pet</button>
+  </form>
+  <ul id="petList"></ul>
 
   <footer>
     <p>© 2025 Pet Tracker. All rights reserved.</p>
@@ -33,29 +29,34 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm"></script>
   <script>
     const supabaseUrl = 'https://pvbzfaowtfmlaafhfmol.supabase.co';
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InB2YnpmYW93dGZtbGFhZmhmbW9sIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTA1MjMzNDcsImV4cCI6MjA2NjA5OTM0N30.zROZYB7D4wONINoGwEUG8Hww3RZaVypAThWBqplGT1I';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...'; // Truncated for safety
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    async function login() {
-      const email = document.getElementById('email').value;
-      const { error } = await supabase.auth.signInWithOtp({ email });
-      if (error) {
-        alert('Login failed: ' + error.message);
-      } else {
-        alert('Check your email for the login link.');
-      }
-    }
+    const emailInput = document.getElementById('email');
+    const loginBtn = document.getElementById('loginBtn');
 
-    // ✅ Show pet UI if logged in
+    loginBtn.onclick = async () => {
+      const email = emailInput.value.trim();
+      if (!email) return alert("Please enter your email.");
+
+      const { error } = await supabase.auth.signInWithOtp({ email });
+
+      if (error) {
+        alert(`Login failed: ${error.message}`);
+      } else {
+        alert("✅ Login link sent! Check your email.");
+        emailInput.value = "";
+      }
+    };
+
     supabase.auth.getUser().then(({ data: { user } }) => {
       if (user) {
         console.log('Logged in as:', user.email);
-        document.getElementById('mainUI').style.display = 'block';
       }
     });
   </script>
 
-  <!-- ✅ Your Pet Tracker JS logic -->
+  <!-- ✅ Pet management logic -->
   <script src="script.js"></script>
 </body>
 </html>
